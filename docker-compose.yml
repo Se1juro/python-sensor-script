@@ -1,0 +1,24 @@
+version: "3.8"
+services:
+  mongodb:
+    build:
+      context: ./MongoDB
+      dockerfile: Dockerfile
+    container_name: mongodb-sensores
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./data:/data/db
+    networks:
+      - network-mongo-sensores
+  python-sensor-emulation:
+    build:
+      context: .
+    container_name: python-sensor-emulator
+    depends_on:
+      - mongodb
+    networks:
+      - network-mongo-sensores
+networks:
+  network-mongo-sensores:
+    driver: bridge
