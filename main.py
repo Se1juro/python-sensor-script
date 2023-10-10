@@ -7,7 +7,7 @@ from sklearn.linear_model import LinearRegression
 
 client = MongoClient('mongodb://mongodb:27017/')
 db = client['sensores-nest']
-collection = db['sensores']
+collection = db['sensors']
 
 sensors = [
     {
