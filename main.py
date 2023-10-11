@@ -4,6 +4,7 @@ import random
 import time
 import numpy as np
 from sklearn.linear_model import LinearRegression
+from datetime import datetime
 
 client = MongoClient('mongodb://mongodb:27017/')
 db = client['sensores-nest']
@@ -31,10 +32,11 @@ for sensor in sensors:
     collection.insert_one(sensor)
 
 def generate_sensor_data(sensor):
-    timestamp = int(time.time())
+    # Obtén la fecha y hora actual del sistema
+    current_time = datetime.now()
 
     if sensor["sensor_name"] == "Sensor de clima":
-        X = np.array([[timestamp]])
+        X = np.array([[current_time.timestamp()]])
         temperature_model = LinearRegression()
         temperature_model.fit(X, np.array([random.uniform(20, 30)]))  # Simula temperatura entre 20°C y 30°C
         temperature = temperature_model.predict(X)[0]
@@ -44,22 +46,35 @@ def generate_sensor_data(sensor):
         humidity = humidity_model.predict(X)[0]
 
         data = {
-            'timestamp': timestamp,
+            'timestamp': current_time.timestamp() * 1000,
             'temperature': temperature,
             'humidity': humidity
         }
 
     elif sensor["sensor_name"] == "Sensor meteorológico":
+        X = np.array([[current_time.timestamp()]])
+        pressure_model = LinearRegression()
+        pressure_model.fit(X, np.array([random.uniform(1010, 1020)]))
+        pressure = pressure_model.predict(X)[0]
+
+        wind_speed_model = LinearRegression()
+        wind_speed_model.fit(X, np.array([random.uniform(1, 10)]))
+        wind_speed = wind_speed_model.predict(X)[0]
         data = {
-            'timestamp': timestamp,
-            'pressure': random.uniform(1010, 1020),
-            'wind_speed': random.uniform(1, 10)
+            'timestamp': current_time.timestamp() * 1000,
+            'pressure': pressure,
+            'wind_speed': wind_speed
         }
 
     elif sensor["sensor_name"] == "Sensor Ambiental":
+        X = np.array([[current_time.timestamp()]])
+        noise_level_model = LinearRegression()
+        noise_level_model.fit(X, np.array([random.uniform(30, 50)]))
+        noise_level = noise_level_model.predict(X)[0]
+
         data = {
-            'timestamp': timestamp,
-            'noise_level': random.uniform(30, 50),
+            'timestamp': current_time.timestamp() * 1000,
+            'noise_level': noise_level,
             'air_quality': random.choice(["Buena", "Moderada", "Mala"])
         }
 
@@ -68,9 +83,8 @@ def generate_sensor_data(sensor):
         {"$push": {"data": data}}
     )
 
-# Ejecuta la generación de datos cada 5 segundos
 while True:
     for sensor in sensors:
         generate_sensor_data(sensor)
     print("Datos generados y actualizados en MongoDB.")
-    time.sleep(5)  # Cambio el tiempo de espera a 5 segundos
+    time.sleep(5)
